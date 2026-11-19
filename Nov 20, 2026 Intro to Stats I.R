@@ -38,7 +38,8 @@ df |>
   geom_density()
 
 df |> 
-  group_by(species) |> 
+  filter(sex != '') |> 
+  group_by(sex) |> 
   summarise(shapiro_test(body_mass))
 
 #Because we have a bimodal distribution going on, so let's see if we have a large enough sample size to justify a t-test. For skewed data we can try applying a transformation (log10 (), sqrt(), etc.), but this usually does not work for biomdal data. However, the central limit theorem can still apply when the same size is large (n = 30-40).
@@ -102,6 +103,8 @@ test<-data.frame(tukey_hsd(model))
 
 #Checking model residuals to ensure no deviance from normality
 
+shapiro.test(residuals(model))
+
 par(mfrow = c(2, 2))
 plot(model)
 par(mfrow = c(1, 1))
@@ -138,13 +141,21 @@ ggplot(na.omit(df), aes(x = bill_len, y = body_mass, color = species)) +
 
 # We should also look at the count data and variances as we have before, but let's assume we did and there are not deviations from normality. To run a linear regression, we will use the lm() function again.
 
+#first we will run an interaction effect between bill length and species, which assess the body mass response to bill length as independent for each species.
+
 mod_interaction <- lm(body_mass ~ bill_len * species, data = df)
 summary(mod_interaction)
 
-mod_additive <- lm(body_mass ~ bill_len + species, data = penguins)
+#Next we can run an additive model that assumes body mass responds similarly across all species (i.e. the slopes of each regression line are the same) but still allows for the intercepts to differ.
+
+mod_additive <- lm(body_mass ~ bill_len + species, data = df)
 summary(mod_additive)
 
+# we can compare models to assess whether and interaction effect or additive effect is a better fit. I the p-value is less than 0.05, this indicates that an interaction effect is a better fit.
+
 anova(mod_additive, mod_interaction)
+
+#since the p-value is less than 0.05, we select the interaction model.
 
 # Sometimes we may want to center our independent variable to account for real-world conditions. Below is how we can do that.
 
@@ -172,6 +183,13 @@ kruskal.test(data = df, body_mass~species)
 
 # For multiple independent variables, a common approach with right-skewed data is to use a generalized linear model or GLM. There are other alternatives to a GLM, but again this is just a common approach.
 
-model2<-glm(data = na.omit(df), body_mass~sex*species, family = Gamma)
+model2<-glm(data = na.omit(df), body_mass~sex*species, family = gaussian)
 
 summary(model2)
+
+
+#Check normality of model residuals
+shapiro.test(residuals(model2))
+
+par(mfrow = c(2, 2))
+plot(model2)
