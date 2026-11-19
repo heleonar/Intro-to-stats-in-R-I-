@@ -50,7 +50,7 @@ df |>
 
 #It looks like we do, so we can proceed to looking at variance. Note that we should also compare our t-test results with a non-parametric test as well.
   
-#Lets check if the variance in male and female body masses are equal or not.
+# Another test for unequal variance: Levene test, which is robust to departures from normality (F-test good for normal data and only two factors, Bartlett test for two or more factors but still normal data). We can test our model residuals by inputting the formula into the Levene test
 
 df |> 
   levene_test((body_mass)~sex)
@@ -114,7 +114,7 @@ par(mfrow = c(1, 1))
 
 qqPlot(model)
 
-# Another test for unequal variance: Levene test, which is robust to departures from normality (F-test good for normal data and only two factors, Bartlett test for two or more factors but still normal data). We can test our model residuals by inputting the formula into the Levene test.
+#Lets check if the variance in male and female body masses are equal or not.
 
 df |> 
   levene_test(body_mass~sex*species)
