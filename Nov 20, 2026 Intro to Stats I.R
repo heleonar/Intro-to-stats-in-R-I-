@@ -138,37 +138,37 @@ skim(df)
 
 #Otion I: using the lm() function
 
-model<- lm(data = na.omit(df), body_mass_g~sex*species)
+model2<- lm(data = na.omit(df), body_mass_g~sex*species)
 
 #now pass the model into the anova() function to generate an anova table
 
-anova(model)
+anova(model2)
 
 #Option II: use the aov() function, which generates a Type I anova
 
-model<- aov(data = na.omit(df), body_mass_g~sex*species)
+model2<- aov(data = na.omit(df), body_mass_g~sex*species)
 
 # now pass the model into the summary() function to generate an anova table
-summary(model)
+summary(model2)
 
 # note that the anova table does not tell use which species are significantly different from each other, only that species are significantly different.
 
 # We can use a post-hoc test to compare each species interaction and see which ones are significantly different from another.
 
-test<-data.frame(tukey_hsd(model))
+test2<-data.frame(tukey_hsd(model2))
 
 #Checking model residuals to ensure no deviance from normality
 
-shapiro.test(residuals(model))
+shapiro.test(residuals(model2))
 
 par(mfrow = c(2, 2))
-plot(model)
+plot(model2)
 par(mfrow = c(1, 1))
 
 
 #car::qqPlot includes confidence interval for assess outliers, which is an nice additional feature to the above qqplot.
 
-qqPlot(model)
+qqPlot(model2)
 
 #Lets check if the variance in male and female body masses are equal or not.
 
@@ -239,13 +239,13 @@ kruskal.test(data = df, body_mass_g~species)
 
 # For multiple independent variables, a common approach with right-skewed data is to use a generalized linear model or GLM. There are other alternatives to a GLM, but again this is just a common approach.
 
-model2<-glm(data = na.omit(df), body_mass_g~sex*species, family = gaussian)
+mod_glm<-glm(data = na.omit(df), body_mass_g~sex*species, family = gaussian)
 
-summary(model2)
+summary(mod_glm)
 
 
 #Check normality of model residuals
-shapiro.test(residuals(model2))
+shapiro.test(residuals(mod_glm))
 
 par(mfrow = c(2, 2))
-plot(model2)
+plot(mod_glm)
