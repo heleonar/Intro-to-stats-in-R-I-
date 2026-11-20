@@ -1,5 +1,4 @@
 # Title: Intro do Stats in R (I)
-# Author: Your Name
 # Date: 2026-11-19
 
 
