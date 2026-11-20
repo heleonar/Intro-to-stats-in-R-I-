@@ -1,7 +1,7 @@
 # Title: Intro do Stats in R (I)
 # Date: 2026-11-19
 
-
+install.packages("skimr")
 # Libraries and data ------------------------------------------------------
 
 library(tidyverse)
@@ -211,7 +211,7 @@ summary(model_lm)
 
 # Let's look at the data
 
-ggplot(na.omit(df), aes(x = bill_length_mm, y = body_mass_g, color = species)) +
+ggplot(na.omit(df), aes(x = bill_length_mm, y = body_mass_g, color=species)) +
   geom_point(alpha = 0.7, na.rm = TRUE) +
   geom_smooth(method = "lm", se = TRUE, na.rm = TRUE) +
   labs(
@@ -225,8 +225,10 @@ ggplot(na.omit(df), aes(x = bill_length_mm, y = body_mass_g, color = species)) +
 
 #first we will run an interaction effect between bill length and species, which assess the body mass response to bill length as independent for each species.
 
-mod_interaction <- lm(body_mass_g ~ bill_length_mm * species, data = df)
+mod_interaction <- lm(body_mass_g ~ bill_length_mm*species, data = na.omit(df))
 summary(mod_interaction)
+
+anova(mod_interaction)
 
 #Next we can run an additive model that assumes body mass responds similarly across all species (i.e. the slopes of each regression line are the same) but still allows for the intercepts to differ.
 
