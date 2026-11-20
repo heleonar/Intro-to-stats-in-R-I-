@@ -61,6 +61,7 @@ t.test(data=df, body_mass_g~sex)
 
 #Our p-value is highly significant! We can also see our means for each group do separate nicely. But recall we have a bimodal distribution so we need to dig further into the data and see what underlying factors could be at work
 
+
 # Anova -------------------------------------------------------------------
 
 #Let's look at our body mass again, but this time let's compare species
@@ -104,7 +105,6 @@ shapiro.test(residuals(model))
 par(mfrow = c(2, 2))
 plot(model)
 par(mfrow = c(1, 1))
-
 
 #car::qqPlot includes confidence interval for assess outliers, which is an nice additional feature to the above qqplot.
 
@@ -165,7 +165,6 @@ par(mfrow = c(2, 2))
 plot(model2)
 par(mfrow = c(1, 1))
 
-
 #car::qqPlot includes confidence interval for assess outliers, which is an nice additional feature to the above qqplot.
 
 qqPlot(model2)
@@ -178,9 +177,37 @@ df |>
 # Here we do not have a significant p-value, so this suggests our residual variance is within acceptable margins.
 
 
-# Regression analysis -----------------------------------------------------
+# Linear Regression -------------------------------------------------------
 
-# Let's look at two continuous traits in our penguins and see if they vary across species. Comparison of two coninuous traits is often done with a linear regression (provided you suspect a linear relationship).
+# Let's look at two continuous traits in our penguins, body mass and bill length, and see if body mass varies with respect to bill length. Comparison of two continuous traits is often done with a linear regression (provided you suspect a linear relationship).
+
+# Let's look at the data
+
+ggplot(na.omit(df), aes(x = bill_length_mm, y = body_mass_g)) +
+  geom_point(alpha = 0.7, na.rm = TRUE) +
+  geom_smooth(method = "lm", se = TRUE, na.rm = TRUE) +
+  labs(
+    x = "Bill Length (mm)",
+    y = "Body Mass (g)",
+    color = "Species"
+  )
+
+#there appears to be a linear trend of increasing body mass with increasing bill length
+
+# We should also look at the count data and variances as we have before, but let's assume we did and there are not deviations from normality. To run a linear regression, we will use the lm() function again.
+
+#first we will run an interaction effect between bill length and species, which assess the body mass response to bill length as independent for each species.
+
+model_lm <- lm(body_mass_g ~ bill_length_mm, data = na.omit(df))
+summary(model_lm)
+
+# It looks like we do have a significant effect of bill length on body mass, and our adjusted R-squared value is about 0.35. We can interpret this to mean that about 35% of body mass change is explained by bill length. Looking at our estimates, it seems that each 1mm increase in bill length corresponds to about 86.8 g of body mass increase.
+# However, not our residual error is rather high, so we should continue parsing out our data and consider what additional factors may be at work
+
+
+# Regression analysis with an interaction term -----------------------------------------------------
+
+# Let's look at the same two continuous traits in our penguins and see if they vary across species.
 
 # Let's look at the data
 
@@ -193,9 +220,8 @@ ggplot(na.omit(df), aes(x = bill_length_mm, y = body_mass_g, color = species)) +
     color = "Species"
   )
 
-#there appears to be a linear trend of increasing body mass with increasing bill length, and this trend holds for all species.
+# Here we see that our linear trend remains but has a much better fit within each species than for all species combined.
 
-# We should also look at the count data and variances as we have before, but let's assume we did and there are not deviations from normality. To run a linear regression, we will use the lm() function again.
 
 #first we will run an interaction effect between bill length and species, which assess the body mass response to bill length as independent for each species.
 
@@ -213,7 +239,9 @@ anova(mod_additive, mod_interaction)
 
 #since the p-value is less than 0.05, we select the interaction model.
 
-# Sometimes we may want to center our independent variable to account for real-world conditions. Below is how we can do that.
+# Sometimes we may want to center our independent variable to account for real-world conditions. What this does is allow the intercept position to be moved from 0 (i.e. a bill length of 0.0 mm) to biologically-relevant x value.
+
+# below we will make a new column of centered data for our bill length, and run the same linear regressions as above.
 
 df_centered<-df |> 
   mutate(bill_length_mm_centered = bill_length_mm - mean(bill_length_mm, na.rm = TRUE))
@@ -226,9 +254,18 @@ summary(mod_additive)
 
 anova(mod_additive, mod_interaction)
 
+# The results are the same as above for the model overall, but the effect of each species has become significant. 
+
+#finally, we want to make sure our model's main effects (species and bill length) are significant, and for this we run our interaction model through and anova.
+
+anova(mod_interaction)
+
+#the above confirms we have significant main effects and a significant interaction.
+
+
 # Non-normal data and parametric tests ------------------------------------
 
-# the alternative to a t-test: Wilcoxin Rank Sum Test (or the Mann-Whitney Test)
+# the alternative to a t-test: Wilcoxon Rank Sum Test (or the Mann-Whitney Test)
 # This is used as an alternative for a two-tailed t-test
 
 wilcox.test(data= df, body_mass_g~sex)
@@ -237,15 +274,3 @@ wilcox.test(data= df, body_mass_g~sex)
 
 kruskal.test(data = df, body_mass_g~species)
 
-# For multiple independent variables, a common approach with right-skewed data is to use a generalized linear model or GLM. There are other alternatives to a GLM, but again this is just a common approach.
-
-mod_glm<-glm(data = na.omit(df), body_mass_g~sex*species, family = gaussian)
-
-summary(mod_glm)
-
-
-#Check normality of model residuals
-shapiro.test(residuals(mod_glm))
-
-par(mfrow = c(2, 2))
-plot(mod_glm)
